@@ -2,7 +2,7 @@ codedir=`dirname $0` #assume that other scripts are in the same directory
 
 #Print out usage of the code and input parameters
 if [ $# -lt 1 ]; then
-  echo "Usage: $0 <sourcedata folder> <subjectnumber> e.g. ./run_one_subj_stats.sh /Users/colette/sourcedata sub-04"
+  echo "Usage: $0 <sourcedata folder> <subjectnumber> e.g. ./run_one_subj_stats_fslmerge2.sh /Users/colette/sourcedata sub-04"
 
 fi
 
