@@ -7,7 +7,7 @@
  
 #Print out usage of the code and input parameters
 if [ $# -lt 1 ]; then
-  echo "Usage: $0 <sourcedata folder> <SubjectNumber> <MRIParameter> e.g [default] (default,paramA,paramB) [options] Output: .Feat Full analysis folder. e.g. ./multi_subj_stats.sh /Users/colette/sourcedata/ sub-02 paramA 060"; 
+  echo "Usage: $0 <sourcedata folder> <SubjectNumber> <MRIParameter> e.g [default] (default,paramA,paramB) [options] Output: .Feat Full analysis folder. e.g. ./multi_subj_stats_test.sh /Users/colette/sourcedata/ sub-02 paramA 060"; 
  #exit 1 ;
 fi
 
@@ -29,17 +29,24 @@ echo "MRI Parameter is:" ${MRIParam}
 echo "Skip Number:" ${SkipNo}
 
 srcin=${src}/derivatives/${subj}/ #source in is the sourcedata/subj-0x/sub-0x_FullDefault.feat
+echo "srcin is:"${srcin}
 srcout=${src}/derivatives/StatsOutput/${subj}/${subj}_${MRIParam} #source out is the sourcedata/Derivatives/StatsOutput/subj-0x
-
+echo "srcout is:" ${srcout}
 #Check if directories exist
 if ! [ -d "${src}/derivatives/StatsOutput" ]; then
 mkdir ${src}/derivatives/StatsOutput #if the directory does not exist, then make it
 fi
- 
+
+if ! [ -d "${src}/derivatives/StatsOutput/${subj}/" ]; then #check if the output directory exists, if not make it
+mkdir ${src}/derivatives/StatsOutput/${subj}/
+fi 
+echo "Making this intermediate folder:" ${src}/derivatives/StatsOutput/${subj}/
+
 if ! [ -d "${srcout}" ]; then #check if the output directory exists, if not make it
 mkdir ${srcout}
 fi
 
+#works up to here
 #if there is an existing stats folder - rename it statsOLD
 StatsFolder=${srcin}/${subj}_Full${MRIParam}.feat/stats
 #if [ -d "${StatsFolder}" ]; then
