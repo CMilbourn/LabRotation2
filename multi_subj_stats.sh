@@ -7,7 +7,7 @@
  
 #Print out usage of the code and input parameters
 if [ $# -lt 1 ]; then
-  echo "Usage: $0 <sourcedata folder> <SubjectNumber> <MRIParameter> e.g [default] (default,paramA,paramB) [options] Output: .Feat Full analysis folder. e.g. ./multi_subj_stats_test.sh /Users/colette/sourcedata/ sub-02 paramA 060"; 
+  echo "Usage: $0 <sourcedata folder> <SubjectNumber> <MRIParameter> e.g [default] [options] (default,paramA,paramB) Output: .Feat Full analysis folder stats folder is copied to derivatives/StatsOutput/SubjNo/SubjNo_MRIParam. e.g. ./multi_subj_stats_test.sh /Users/colette/sourcedata/ sub-02 paramA 060"; 
  #exit 1 ;
 fi
 
@@ -77,7 +77,6 @@ sed -i -e "s|INPUTFEATDIR|${inputfeatdir}|" ${srcout}/designStats${MRIParam}.fsf
 skipno=${SkipNo}
 sed -i -e "s|SKIPNUMBER|${skipno}|" ${srcout}/designStats${MRIParam}.fsf #in the designDefault.fsf file change the Skip Number
 
-
 #Run full FEAT analysis following design.Default.fsf
 echo "Running Feat Stats designStats for..." ${subj}_${MRIParam}_${SkipNo}
 feat ${srcout}/designStats${MRIParam}.fsf 
@@ -97,7 +96,7 @@ cp -r ${StatsFolder} ${srcout}/stats_${subj}_${MRIParam}_${SkipNo}
 cd ${srcout}/stats_${subj}_${MRIParam}_${SkipNo}
 pwd 
 ${PWD}
-chmod u+w stats_${subj}_${MRIParam}_${SkipNo}
+#chmod u+w stats_${subj}_${MRIParam}_${SkipNo}
 #chmod a+x ./*
 #if ! [ -f "cope2_${subj}_${MRIParam}_${SkipNo}.nii.gz" ]; then
 for file in *.nii.gz; do mv "${file}" "${file/.nii.gz/_${subj}_${MRIParam}_${SkipNo}.nii.gz}"; done
@@ -124,8 +123,5 @@ mkdir ${srcout}/Zstat2_${subj}_${MRIParam}
 fi
 chmod u+w *.nii.gz
 #Move copy of zstat to Zstat2_sub-0x
-echo "Moving copy of zstat2 to subfolder..."
+echo "Moving copy of zstat2 to subfolder..." ${srcout}/Zstat2_${subj}_${MRIParam}
 cp ${srcout}/stats_${subj}_${MRIParam}_${SkipNo}/zstat2_${subj}_${MRIParam}_${SkipNo}.nii.gz ${srcout}/Zstat2_${subj}_${MRIParam}
-
-#sed -i -e "s|OUTPUTDIR|${srcout}|" ${srcout}/designStats.fsf #in the designDefault.fsf file find and replace 'OUTPUTDIR' with the outputdata file above
-

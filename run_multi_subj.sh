@@ -18,7 +18,7 @@ MRIParam=$2
 #echo $PWD
 
 #e.g. ./one_subj.sh /Users/colette/sourcedata/ sub-01 default
-for n in {3..4}
+for n in {1..6}
 do
 
 	subj_id=sub-`printf "%02d\n" $n`
