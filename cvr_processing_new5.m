@@ -29,10 +29,18 @@ DataOutput = '/Users/colette/sourcedata/derivatives/DataOutput'
 
 DataOutputPerSubj = '/Users/colette/sourcedata/derivatives/DataOutput/PerSubj'
 
-for k=1:3
-
+%for k=1:3
+%for k= [1, 2, 3, 5, 7, 8, 9]    
+%for k= [1 2 3 5 7 8 9]
+%for k= {'01' '02' '03' '05' '07' '08' '09'}
+%for k= 1 2 3 5 7 8 9
+numlist = {1,2,3,5,7,8,9};
+for k = 1:length(numlist)
+    %numlist = {1,2,3,5,7,8,9};
     %% Variables
-    subj = sprintf('%02d',k);
+    %subj = sprintf('%02d',k);
+    subj= sprintf('%02d',numlist{k})
+    %subj = {k};
     srcout = '/Users/colette/sourcedata/derivatives/StatsOutput/'
     src = '/Users/colette/sourcedata/'
     %srcout = sprintf('/Users/colette/sourcedata/derivatives/sub-%s', subj)
@@ -61,9 +69,9 @@ for k=1:3
     % *Output*: variable gm_cortex
     %%figure
     
-    figure; %creates a figure
-    imagesc(default_cvr(:,:,6),[0 2]); %displays default_cvr as a sanity check
-    colorbar; %colour bar displayed in figure
+%     figure; %creates a figure
+%     imagesc(default_cvr(:,:,6),[0 2]); %displays default_cvr as a sanity check
+%     colorbar; %colour bar displayed in figure
     
     %% reshape
     default_cvr_r=reshape(default_cvr,64*64*12,31); %skip number 000
@@ -161,7 +169,7 @@ end
 
 %write out for total cvr files
 %cvrmedians
-dlmwrite(sprintf('%s/cvrmedians_final_all_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),cvrmedians_final(:,:),'\t')
+dlmwrite(sprintf('%s/cvrmedians_final_all_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),cvrmedians_final,'\t')
 %cvrmediansNOZ
 dlmwrite(sprintf('%s/cvrmediansNOZ_final_all_%s.tsv', DataOutput,datestr(clock,'yyyy-mm-dd_HH-MM-SS')),cvrmediansNOZ_final,'\t')
 
@@ -179,9 +187,114 @@ dlmwrite(sprintf('%s/cvrmeansNOZ_final_all_%s.tsv', DataOutput, datestr(clock,'y
 % you have a table w. headings of rows, cvrm, and numbers listed down the columns 
 % - that table T is produced by the funcn 
 % should have 32 columns - could look at cvrmediansnoZ - plot cvrmedianz
-%% Make Histograms %%
+%% Make a new table here %%
 
-%% add new figures here for the means and medians
+%% TABLES %%
+%Cvrmeans
+Tablecvrmeans = cell2mat(cvrmeans_final)
+Headers = {'sub01default','sub01paramA','sub01paramB',...
+'sub02default','sub02paramA','sub02paramB',...
+'sub03default','sub03paramA','sub03paramB',...
+'sub05default','sub05paramA','sub05paramB',...
+'sub07default','sub07paramA','sub07paramB',...
+'sub08default','sub08paramA','sub08paramB'...
+'sub09default','sub09paramA','sub09paramB'};
+Tablecvrmeans2 = [Headers; num2cell(Tablecvrmeans)]
+Tablecvrmeans3 = cell2table(Tablecvrmeans2)
+Tablecvrmeans4 = Tablecvrmeans2(2:end,:);
+Table_cvrmeans5 = cell2table(Tablecvrmeans4)
+Table_cvrmeans5.Properties.VariableNames = Tablecvrmeans2(1,:)
+cvrmeans_final_table = Table_cvrmeans5
+
+%cvrmeansNOZ
+TablecvrmeansNOZ = cell2mat(cvrmeansNOZ_final)
+Headers = {'sub01default','sub01paramA','sub01paramB',...
+'sub02default','sub02paramA','sub02paramB',...
+'sub03default','sub03paramA','sub03paramB',...
+'sub05default','sub05paramA','sub05paramB',...
+'sub07default','sub07paramA','sub07paramB',...
+'sub08default','sub08paramA','sub08paramB'...
+'sub09default','sub09paramA','sub09paramB'};
+TablecvrmeansNOZ2 = [Headers; num2cell(TablecvrmeansNOZ)]
+TablecvrmeansNOZ3 = cell2table(TablecvrmeansNOZ2)
+TablecvrmeansNOZ4 = TablecvrmeansNOZ2(2:end,:);
+Table_cvrmeansNOZ5 = cell2table(TablecvrmeansNOZ4)
+Table_cvrmeansNOZ5.Properties.VariableNames = TablecvrmeansNOZ2(1,:)
+cvrmeansNOZ_final_table = Table_cvrmeansNOZ5
+
+%cvrmedians
+Tablecvrmedians = cell2mat(cvrmedians_final)
+Headers = {'sub01default','sub01paramA','sub01paramB',...
+'sub02default','sub02paramA','sub02paramB',...
+'sub03default','sub03paramA','sub03paramB',...
+'sub05default','sub05paramA','sub05paramB',...
+'sub07default','sub07paramA','sub07paramB',...
+'sub08default','sub08paramA','sub08paramB'...
+'sub09default','sub09paramA','sub09paramB'};
+Tablecvrmedians2 = [Headers; num2cell(Tablecvrmedians)]
+Tablecvrmedians3 = cell2table(Tablecvrmedians2)
+Tablecvrmedians4 = Tablecvrmedians2(2:end,:);
+Table_cvrmedians5 = cell2table(Tablecvrmedians4)
+Table_cvrmedians5.Properties.VariableNames = Tablecvrmedians2(1,:)
+cvrmedians_final_table = Table_cvrmedians5
+%cvrmediansNOZ
+TablecvrmediansNOZ = cell2mat(cvrmediansNOZ_final)
+Headers = {'sub01default','sub01paramA','sub01paramB',...
+'sub02default','sub02paramA','sub02paramB',...
+'sub03default','sub03paramA','sub03paramB',...
+'sub05default','sub05paramA','sub05paramB',...
+'sub07default','sub07paramA','sub07paramB',...
+'sub08default','sub08paramA','sub08paramB'...
+'sub09default','sub09paramA','sub09paramB'};
+TablecvrmediansNOZ2 = [Headers; num2cell(TablecvrmediansNOZ)]
+TablecvrmediansNOZ3 = cell2table(TablecvrmediansNOZ2)
+TablecvrmediansNOZ4 = TablecvrmediansNOZ2(2:end,:);
+Table_cvrmediansNOZ5 = cell2table(TablecvrmediansNOZ4)
+Table_cvrmediansNOZ5.Properties.VariableNames = TablecvrmediansNOZ2(1,:)
+cvrmediansNOZ_final_table = Table_cvrmediansNOZ5
+
+%dlmwrite(sprintf('%s/cvrmeans_final_all_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),Table_new,'\t')
+
+% save('savefile.mat', 'T')
+% save(sprintf('%s/cvrmeans_table_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),Table_new,'\t')
+% save('cvrmeans_table.tsv', 'Table_new')
+% dlmwrite(sprintf('%s/cvrmeans_table_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),Table_new,'\t') 
+% 
+% dlmwrite('cvrmeans_table',Table_new,'\t') 
+
+
+
+%% Make loop for tables here: 
+% cvrlist = [cvrmeans_final cvrmeansNOZ_final cvrmedians_final cvrmedians_final];
+% for c= 1:4
+%  %final = sprintf('%s_final',c)
+%   final= cvrlist({c})
+% keyboard;
+%     TableTest = cell2mat(final)
+% end
+%     Headers = {'sub01default','sub01paramA','sub01paramB',...
+%         'sub02default','sub02paramA','sub02paramB',...
+%         'sub03default','sub03paramA','sub03paramB',...
+%         'sub05default','sub05paramA','sub05paramB',...
+%         'sub07default','sub07paramA','sub07paramB',...
+%         'sub08default','sub08paramA','sub08paramB'...
+%         'sub09default','sub09paramA','sub09paramB'};
+%     TableTest2 = [Headers; num2cell(TableTest)]
+%     TableTest3 = cell2table(TableTest2)
+%     TableTest4 = TableTest2(2:end,:);
+%     Table_new = cell2table(TableTest4)
+%     Table_new.Properties.VariableNames = TableTest2(1,:)
+%     sprintf('%s_table',final) = Table_new
+% end    
+%     
+%     
+
+
+%% add new figures here for the means and medians here %%
+
+% figure
+% plot(cvrmeans_final)
+% title('cvrmeans_final')
 % figure;
 % hist(default_cvr_vals(:,16),1000); %distribution for each time delay - 
 %hist(default_cvr_vals,1000) %1000 bins - can specify what bins, could
@@ -209,3 +322,5 @@ dlmwrite(sprintf('%s/cvrmeansNOZ_final_all_%s.tsv', DataOutput, datestr(clock,'y
 
 %% run through index of skip number time point
 % -60+(index-1)*4
+
+fprintf('~~~ End of Script ~~~');
