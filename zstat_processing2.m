@@ -2,104 +2,94 @@
  
 %% Line to make it into a function
 % function T=asl_analysis(src,subj)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Housekeeping
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all % clear workspace
 close all % close any open figures
 clc %clear command window
-diary on
-diary my_data.out
-echo on
+diary on %turn on diary
+diary my_data.out %ouput the information into a file called 'my_data.out'
+echo on %echo is turned on - this will print most things into the command window to turn of use 'echo off'
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% set FSL environment 
-fprintf 'Setting up FSL environment...'
-setenv('FSLDIR','/usr/local/fsl');  % this to tell where FSL folder is 
-setenv('FSLOUTPUTTYPE', 'NIFTI_GZ'); % this to tell what the output type would be 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fprintf 'Setting up FSL environment...' %prints to command window 'Setting up FSL environment...'
+setenv('FSLDIR','/usr/local/fsl');  % path to FSL folder
+setenv('FSLOUTPUTTYPE', 'NIFTI_GZ'); % Set up output type 
 
-srcout = '/Users/colette/sourcedata/derivatives/StatsOutput/'
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Set up paths
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Source In - Path to datafolder
 src = '/Users/colette/sourcedata/'
+%Source Out - Path to previously processed data
+srcout = '/Users/colette/sourcedata/derivatives/StatsOutput/'
 
-    if ~exist('/Users/colette/sourcedata/derivatives/DataOutput', 'dir')
-       mkdir('/Users/colette/sourcedata/derivatives/DataOutput')
+%Check if the folder 'DataOutput' exists, if it does not then creates it
+    if ~exist(sprintf('%s/derivatives/DataOutput',src), 'dir')
+       mkdir(sprintf('%s/derivatives/DataOutput',src))
     end
+DataOutput = sprintf('%s/derivatives/DataOutput',src) %Assign variable DataOutput to the folder
 
-DataOutput = '/Users/colette/sourcedata/derivatives/DataOutput'
 
-    if ~exist('/Users/colette/sourcedata/derivatives/DataOutput/PerSubj', 'dir')
-       mkdir('/Users/colette/sourcedata/derivatives/DataOutput/PerSubj')
+%Check if the subfolder 'PerSubj' exists, if it does not then creates it
+    if ~exist(sprintf('%s/derivatives/DataOutput/PerSubj',src), 'dir')
+       mkdir(sprintf('%s/derivatives/DataOutput/PerSubj',src))
     end
+DataOutputPerSubj = sprintf('%s/derivatives/DataOutput/PerSubj',src) %Assign variable DataOutput to the folder
 
-DataOutputPerSubj = '/Users/colette/sourcedata/derivatives/DataOutput/PerSubj'
-
-%for k=1:3
-%for k= [1, 2, 3, 5, 7, 8, 9]    
-%for k= [1 2 3 5 7 8 9]
-%for k= {'01' '02' '03' '05' '07' '08' '09'}
-%for k= 1 2 3 5 7 8 9
-numlist = {1,2,3,5,7,8,9};
-for k = 1:length(numlist)
-    %numlist = {1,2,3,5,7,8,9};
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% For Loop to create files of mean, median Zstats, both with & without 0's %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%(i.e. without 0's excludes areas outside the Grey matter mask) 
+%for k=1:3 %to run through subjects 1 to 3
+numlist = {1,2,3,5,7,8,9}; %Creates a list with the subject numbers to run through called 'numlist'
+for k = 1:length(numlist) %start of for loop - runs through one number in 'numlist' per iteration
     %% Variables
-    %subj = sprintf('%02d',k);
-    subj= sprintf('%02d',numlist{k})
-    %subj = {k};
-    srcout = '/Users/colette/sourcedata/derivatives/'
-    src = '/Users/colette/sourcedata/'
-    srcout2 = sprintf('%sderivatives/sub-%s/sub-%s_', src, subj, subj)
-    %srcout = sprintf('/Users/colette/sourcedata/derivatives/sub-%s', subj)
-   % srcout2 = sprintf('%sderivatives/sub-%s/sub-%s_', src, subj, subj)
-    
+    subj= sprintf('%02d',numlist{k}) %assigns the variable 'subj' the number from numlist as a string in 01 format
+    src = '/Users/colette/sourcedata/' %source in
+    srcout2 = sprintf('%sderivatives/sub-%s/sub-%s_', src, subj, subj) %alternative source out if it is not the same as srcout
+
     %% *read_avw*
-    %/Users/colette/sourcedata/derivatives/sub-01/sub-01_default_analysis/Zstat2_concat_sub-01_default_MZeroScan.nii.gz 
-    %default_zstat
+    %Reads in the zstat files created by 'do_analysis_zstat.sh'
+    %e.g. file in: /Users/colette/sourcedata/derivatives/sub-01/sub-01_default_analysis/Zstat2_concat_sub-01_default_MZeroScan.nii.gz 
     MRIParam1= 'default'
-    %[default_zstat, dims, scales, bpp, endian] = read_avw([srcout subj '/' 'zstat2maps_concat_sub-' subj '_' MRIParam1 '_percentage.nii.gz']);
- 
     [default_zstat, dims, scales, bpp, endian] = read_avw([srcout2 MRIParam1 '_analysis/Zstat2_concat_sub-' subj '_' MRIParam1 '_MZeroScan.nii.gz']);
     
     MRIParam2 = 'paramA'
-    
     [paramA_zstat, dims, scales, bpp, endian] = read_avw([srcout2 MRIParam2 '_analysis/Zstat2_concat_sub-' subj '_' MRIParam2 '_MZeroScan.nii.gz']);
     
     MRIParam3 = 'paramB'
     [paramB_zstat, dims, scales, bpp, endian] = read_avw([srcout2 MRIParam3 '_analysis/Zstat2_concat_sub-' subj '_' MRIParam3 '_MZeroScan.nii.gz']);
    
-    % gm_cortex %
-    %gm_cortex=read_avw(['/Users/colette/sourcedata/derivatives/sub-01/sub-01_gmcortex.nii.gz']);
+    %% gm_cortex %
+    %Reads in the grey matter cortex mask created by 'do_analysis_edit2.sh'
+    %e.g. file: /Users/colette/sourcedata/derivatives/sub-01/sub-01_gmcortex.nii.gz
     gm_cortex = read_avw([sprintf('%sderivatives/sub-%s/sub-%s_gmcortex.nii.gz', src, subj, subj)]);
-    %% Reads in the cortex map that we created GM_MZeroScan and assigns it to variable
-    % called gm_cortex
-    % *Input*: sourcedata folder/subjectnumber/func/subject_ GM_MZeroScan
     % *Output*: variable gm_cortex
-    %%figure
     
-%     figure; %creates a figure
+    %% figure for checking image input
+%     figure; %creates a figure for one slice/volume 
 %     imagesc(default_zstat(:,:,6),[0 2]); %displays default_zstat as a sanity check
 %     colorbar; %colour bar displayed in figure
     
     %% reshape
-    default_zstat_r=reshape(default_zstat,64*64*12,31); %skip number 000
-    %default_zstat_r=reshape(default_zstat,64*64*12,31);
+    %Reshapes the 4D singles into 419152x31 single - appends '_r' to new
+    %variable
+    default_zstat_r=reshape(default_zstat,64*64*12,31); %64x64x12 matrix, 31 timepoints(skip numbers)
     paramA_zstat_r=reshape(paramA_zstat,64*64*12,31);
     paramB_zstat_r=reshape(paramB_zstat,64*64*12,31);
     gm_cortex_r=reshape(gm_cortex,64*64*12,1);
     
-    % *default_zstatr=reshape*  - takes zstat default map 
     %% Make Mask for gm_cortex
     default_zstat_vals=default_zstat_r(gm_cortex_r>0,:);
     paramA_zstat_vals=paramA_zstat_r(gm_cortex_r>0,:);
     paramB_zstat_vals=paramB_zstat_r(gm_cortex_r>0,:);
-    
-    %% Set up table inputs
-    
-    %rows={'default'; 'paramA'; 'paramB'};
-
-    
-    % zstatmeans takes means of num you get
-    %zstatmeansnoZ(1,:)=mean(default_zstat_vals(:,default_zstat_vals~=0)); %not =/= to 0 - find for 0 andonly applying to one time point
-    
-    %% Create Mean and Median variables for table
-   
-%keyboard;
-    %% Make Medians without 0's
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      
+    %% Create Mean and Median variables for table %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Make Medians without 0's %%
     default_zstat_valsNOZ=default_zstat_vals;
     default_zstat_valsNOZ(default_zstat_valsNOZ(:,1)==0,:)=NaN;
     zstatmedians_NOZ(1,:)= nanmedian(default_zstat_valsNOZ)
@@ -117,11 +107,8 @@ for k = 1:length(numlist)
     %save zstatmedians to one variable column per iteration
     zstatmediansNOZ_final{k}=(zstatmedians_NOZ)'
     dlmwrite(sprintf('%s/zstatmediansNOZ_final_sub-%s_%s.tsv', DataOutputPerSubj, subj, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),zstatmediansNOZ_final{k},'\t')
-%     plot(zstatmedians_final);
-%     title(sprintf('zstatMedians No Zeros sub%s',subj))
-
     
-    %% Medians WITH 0's 
+    %% Medians WITH 0's  %%
     zstatmedians(1,:)=median(default_zstat_vals,1);
     zstatmedians(2,:)=median(paramA_zstat_vals,1);
     zstatmedians(3,:)=median(paramB_zstat_vals,1);
@@ -130,46 +117,43 @@ for k = 1:length(numlist)
     zstatmedians_final{k}=(zstatmedians)'
     dlmwrite(sprintf('%s/zstatmedians_final_sub-%s_%s.tsv', DataOutputPerSubj, subj, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),zstatmedians_final{k},'\t')
     
-    %1x31 or 31x1 or by 3 - one for each MRIparam??
-        %% Make Means without 0's
-    default_zstat_valsNOZ=default_zstat_vals;
-    default_zstat_valsNOZ(default_zstat_valsNOZ(:,1)==0,:)=NaN;
-    zstatmeans_NOZ(1,:)= nanmean(default_zstat_valsNOZ)
+    %% Make Means without 0's %%
+    default_zstat_valsNOZ=default_zstat_vals; %Create variable for zstat_vals with NO Zeros
+    default_zstat_valsNOZ(default_zstat_valsNOZ(:,1)==0,:)=NaN; %replace any 0' with NAN 
+    zstatmeans_NOZ(1,:)= nanmean(default_zstat_valsNOZ) %Mean of zstat_vals without any 0's(areas outside the mask)
     
-    paramA_zstat_valsNOZ=paramA_zstat_vals;
-    paramA_zstat_valsNOZ(paramA_zstat_valsNOZ(:,1)==0,:)=NaN;
-    zstatmeans_NOZ(2,:)=nanmean(paramA_zstat_valsNOZ)
+    paramA_zstat_valsNOZ=paramA_zstat_vals; %Create variable for zstat_vals with NO Zeros
+    paramA_zstat_valsNOZ(paramA_zstat_valsNOZ(:,1)==0,:)=NaN;%replace any 0' with NAN
+    zstatmeans_NOZ(2,:)=nanmean(paramA_zstat_valsNOZ) %Mean of zstat_vals without any 0's(areas outside the mask)
     
-    paramB_zstat_valsNOZ=paramB_zstat_vals;
-    paramB_zstat_valsNOZ(paramB_zstat_valsNOZ(:,1)==0,:)=NaN;
-    zstatmeans_NOZ(3,:)=nanmean(paramB_zstat_valsNOZ)
+    paramB_zstat_valsNOZ=paramB_zstat_vals; %Create variable for zstat_vals with NO Zeros
+    paramB_zstat_valsNOZ(paramB_zstat_valsNOZ(:,1)==0,:)=NaN; %replace any 0' with NAN
+    zstatmeans_NOZ(3,:)=nanmean(paramB_zstat_valsNOZ) %Mean of zstat_vals without any 0's(areas outside the mask)
     
     %save to zstatmeansNOZ for each iteration
-    zstatmeansNOZ_final{k}=(zstatmeans_NOZ)'
+    zstatmeansNOZ_final{k}=(zstatmeans_NOZ)' %transpose 
     dlmwrite(sprintf('%s/zstatmeansNOZ_final_sub-%s_%s.tsv', DataOutputPerSubj, subj, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),zstatmeansNOZ_final{k},'\t')  
-    %% Means WITH 0's
-    %zstatmeans(1,:)=mean(default_zstat_vals,1); %default as row, added comma 2
-%     zstatmeans_default(:,k)=mean(default_zstat_vals,1)';
-%     zstatmeans_paramA(:,k)=mean(paramA_zstat_vals,1)';
-%     zstatmeans_paramB(:,k)=mean(default_zstat_vals,1)';
     
+    %% Means WITH 0's %%
     zstatmeans(1,:)=mean(default_zstat_vals,1);
     zstatmeans(2,:)=mean(paramA_zstat_vals,1);
     zstatmeans(3,:)=mean(paramB_zstat_vals,1);
     
-    
     zstatmeans_final{k}=(zstatmeans)'
     dlmwrite(sprintf('%s/zstatmeans_final_sub-%s_%s.tsv', DataOutputPerSubj, subj, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),zstatmeans_final{k},'\t')
-%     zstatmeans(2,:)=mean(paramA_zstat_vals,1);
-%     zstatmeans(3,:)=mean(paramB_zstat_vals,1);
     
-    %saveas(gcf,fullfile(srcout,['T' num2str(subj) 'table_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg']));
-%keyboard;
-
+    %% Save zstat_final files %%
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Set up table inputs %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+    %rows={'default'; 'paramA'; 'paramB'};
+  
 
-%write out for total zstat files
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%% Save total zstat files as .tsv files %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 %zstatmedians
 dlmwrite(sprintf('%s/zstatmedians_final_all_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),zstatmedians_final,'\t')
 %zstatmediansNOZ
@@ -183,16 +167,11 @@ dlmwrite(sprintf('%s/zstatmeansNOZ_final_all_%s.tsv', DataOutput, datestr(clock,
 % for SD - weighted 
 % Does same for medians And mediansnoZ 
 %For all 3 parameters
-%% Make Table
-%T=table(rows,zstatmeans,zstatmeansnoZ,zstatmedians,zstatmediansnoZ); 
-% T=table names of rows variables of the columns names - > in command window 
-% you have a table w. headings of rows, zstatm, and numbers listed down the columns 
-% - that table T is produced by the funcn 
-% should have 32 columns - could look at zstatmediansnoZ - plot zstatmedianz
-%% Make a new table here %%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% TABLES %%
-%zstatmeans
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% zstatmeans %
 Tablezstatmeans = cell2mat(zstatmeans_final)
 Headers = {'sub01default','sub01paramA','sub01paramB',...
 'sub02default','sub02paramA','sub02paramB',...
@@ -215,7 +194,7 @@ zstatmeans_final_table.Overallmean = mean(zstatmeans_final_table{:,2:end},2)
 
 %rows={-60:4:60}';
 
-%zstatmeansNOZ
+% zstatmeansNOZ %
 TablezstatmeansNOZ = cell2mat(zstatmeansNOZ_final)
 Headers = {'sub01default','sub01paramA','sub01paramB',...
 'sub02default','sub02paramA','sub02paramB',...
@@ -231,7 +210,7 @@ Table_zstatmeansNOZ5 = cell2table(TablezstatmeansNOZ4)
 Table_zstatmeansNOZ5.Properties.VariableNames = TablezstatmeansNOZ2(1,:)
 zstatmeansNOZ_final_table = Table_zstatmeansNOZ5
 
-%zstatmedians
+% zstatmedians %
 Tablezstatmedians = cell2mat(zstatmedians_final)
 Headers = {'sub01default','sub01paramA','sub01paramB',...
 'sub02default','sub02paramA','sub02paramB',...
@@ -263,9 +242,11 @@ Table_zstatmediansNOZ5 = cell2table(TablezstatmediansNOZ4)
 Table_zstatmediansNOZ5.Properties.VariableNames = TablezstatmediansNOZ2(1,:)
 zstatmediansNOZ_final_table = Table_zstatmediansNOZ5
 
-%% PLOT
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PLOT means and medians with & without 0's %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plots Tablezstat's for mean, median both w. & w.o 0's
+%adds a title
 figure;
 plot(Tablezstatmeans);
 title('Tablezstatmeans')
@@ -279,16 +260,18 @@ figure;
 plot(TablezstatmediansNOZ);
 title('TablezstatmediansNOZ')
 
-
+% Plots mean of the default, paramA & paramB medians %
 figure
 plot((-60:4:60),mean(Tablezstatmedians(:,1:3:end),2),'r')
-hold on
+hold on %plots the following two onto the same graph
 plot((-60:4:60),mean(Tablezstatmedians(:,2:3:end),2),'g')
 plot((-60:4:60),mean(Tablezstatmedians(:,3:3:end),2),'b')
 title('Zstat Means of Medians');
 grid
 legend('Default','paramA','paramB')
+hold off
 
+% Plots mean of the default, paramA & paramB means %
 figure
 plot((-60:4:60),mean(Tablezstatmeans(:,1:3:end),2),'r')
 hold on
@@ -297,6 +280,8 @@ plot((-60:4:60),mean(Tablezstatmeans(:,3:3:end),2),'b')
 title('Zstat Means of Means');
 grid
 legend('Default','paramA','paramB')
+hold off
+
 %% Need to get a mean of each column of the new table - excluding the header %%
 
 %dlmwrite(sprintf('%s/zstatmeans_final_all_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),Table_new,'\t')
@@ -333,39 +318,7 @@ legend('Default','paramA','paramB')
 % end    
 %     
 %     
-
-
-%% add new figures here for the means and medians here %%
-
-% figure
-% plot(zstatmeans_final)
-% title('zstatmeans_final')
-% figure;
-% hist(default_zstat_vals(:,16),1000); %distribution for each time delay - 
-%hist(default_zstat_vals,1000) %1000 bins - can specify what bins, could
-%specify range of valsues e..g 1:1:10 to do in steps of 10 seconds - inside
-%bins - then outside bins with everythign else - look
-%
-% title('zstat default');
-% 
-% figure;
-% hist(paramA_zstat_vals,1000)
-% title('zstat paramA');
-% 
-% figure;
-% hist(paramB_zstat_vals,1000)
-% title('zstat paramB');
-%% 
-% *hist ->* Put it in that histogram 
-% - do one for each 
-% - so you can look at it and see if mean is better representation to the peak 
-% or the median 0 
-% Often the median is better, in some cases – when less noisy data then mean 
-% and median is sim 
-% If noisy then mean and median will be far apart but median more likely to 
-% be close to the peak
-
 %% run through index of skip number time point
 % -60+(index-1)*4
-
-fprintf('~~~ End of Script ~~~');
+%% End of Script %%
+fprintf('~~~ End of Script ~~~'); %prints to command window '~~~ End of Script ~~~'
