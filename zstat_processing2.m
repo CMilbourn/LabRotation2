@@ -145,12 +145,6 @@ for k = 1:length(numlist) %start of for loop - runs through one number in 'numli
     %% Save zstat_final files %%
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Set up table inputs %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
-    %rows={'default'; 'paramA'; 'paramB'};
-  
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 %% Save total zstat files as .tsv files %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -158,28 +152,49 @@ end
 dlmwrite(sprintf('%s/zstatmedians_final_all_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),zstatmedians_final,'\t')
 %zstatmediansNOZ
 dlmwrite(sprintf('%s/zstatmediansNOZ_final_all_%s.tsv', DataOutput,datestr(clock,'yyyy-mm-dd_HH-MM-SS')),zstatmediansNOZ_final,'\t')
-
 %zstatmeans
 dlmwrite(sprintf('%s/zstatmeans_final_all_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),zstatmeans_final,'\t')
 %zstatmeansNOZ
 dlmwrite(sprintf('%s/zstatmeansNOZ_final_all_%s.tsv', DataOutput, datestr(clock,'yyyy-mm-dd_HH-MM-SS')),zstatmeansNOZ_final,'\t')  
 
-% for SD - weighted 
-% Does same for medians And mediansnoZ 
-%For all 3 parameters
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% TABLES %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% zstatmeans %
-Tablezstatmeans = cell2mat(zstatmeans_final)
+%% Set up table inputs %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+%rows - skip numbers -60 secs to +60 secs in intervals of 4secs
+%row={-60:4:60}';
+%row=(-60:4:60)';
+% Headers %
+%Each parameter is entered mannually cos it does not like the loop
+%Headers = {'SubjectNo_MRIParam','sub01default','sub01paramA','sub01paramB',...
 Headers = {'sub01default','sub01paramA','sub01paramB',...
 'sub02default','sub02paramA','sub02paramB',...
 'sub03default','sub03paramA','sub03paramB',...
 'sub05default','sub05paramA','sub05paramB',...
 'sub07default','sub07paramA','sub07paramB',...
 'sub08default','sub08paramA','sub08paramB'...
-'sub09default','sub09paramA','sub09paramB'};
+'sub09default','sub09paramA','sub09paramB'}; 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% TABLES %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% zstatmeans %
+% Tablezstatmeans = cell2mat(zstatmeans_final) %converts from cell array to matrix
+% %Tablezstatmeans2 = [row; num2cell(Tablezstatmeans)]
+% Tablezstatmeans2 = [Headers; num2cell(Tablezstatmeans)] %adds headers to columns not sure why it has to be cells 
+% Tablezstatmeans3 = cell2table(Tablezstatmeans2) %converts from cell to table format
+% Tablezstatmeans4 = Tablezstatmeans2(2:end,:); %assigns from row 2 until end and all columns 
+% Table_zstatmeans5 = cell2table(Tablezstatmeans4) %converts from cell to table format
+% Table_zstatmeans6 = table(rows,Table_zstatmeans5)
+% Table_zstatmeans5.Properties.VariableNames = Tablezstatmeans2(1,:) %adds correct headers in table format
+% zstatmeans_final_table = Table_zstatmeans5 %saves as '_final_table'
+
+%sumzstatmeans=summary(zstatmeans_final_table)
+%zstatmeans_final_table.Overallmean = mean(zstatmeans_final_table{:,2:end},2)
+%zstatmeans_final_table.eachtimepointmean = mean(zstatmeans_final_table{2:end,:})
+
+% zstatmeans %
+Tablezstatmeans = cell2mat(zstatmeans_final)
 Tablezstatmeans2 = [Headers; num2cell(Tablezstatmeans)]
 Tablezstatmeans3 = cell2table(Tablezstatmeans2)
 Tablezstatmeans4 = Tablezstatmeans2(2:end,:);
@@ -187,22 +202,8 @@ Table_zstatmeans5 = cell2table(Tablezstatmeans4)
 Table_zstatmeans5.Properties.VariableNames = Tablezstatmeans2(1,:)
 zstatmeans_final_table = Table_zstatmeans5
 
-
-%sumzstatmeans=summary(zstatmeans_final_table)
-zstatmeans_final_table.Overallmean = mean(zstatmeans_final_table{:,2:end},2)
-%zstatmeans_final_table.eachtimepointmean = mean(zstatmeans_final_table{2:end,:})
-
-%rows={-60:4:60}';
-
 % zstatmeansNOZ %
 TablezstatmeansNOZ = cell2mat(zstatmeansNOZ_final)
-Headers = {'sub01default','sub01paramA','sub01paramB',...
-'sub02default','sub02paramA','sub02paramB',...
-'sub03default','sub03paramA','sub03paramB',...
-'sub05default','sub05paramA','sub05paramB',...
-'sub07default','sub07paramA','sub07paramB',...
-'sub08default','sub08paramA','sub08paramB'...
-'sub09default','sub09paramA','sub09paramB'};
 TablezstatmeansNOZ2 = [Headers; num2cell(TablezstatmeansNOZ)]
 TablezstatmeansNOZ3 = cell2table(TablezstatmeansNOZ2)
 TablezstatmeansNOZ4 = TablezstatmeansNOZ2(2:end,:);
@@ -210,15 +211,11 @@ Table_zstatmeansNOZ5 = cell2table(TablezstatmeansNOZ4)
 Table_zstatmeansNOZ5.Properties.VariableNames = TablezstatmeansNOZ2(1,:)
 zstatmeansNOZ_final_table = Table_zstatmeansNOZ5
 
+
+
+
 % zstatmedians %
 Tablezstatmedians = cell2mat(zstatmedians_final)
-Headers = {'sub01default','sub01paramA','sub01paramB',...
-'sub02default','sub02paramA','sub02paramB',...
-'sub03default','sub03paramA','sub03paramB',...
-'sub05default','sub05paramA','sub05paramB',...
-'sub07default','sub07paramA','sub07paramB',...
-'sub08default','sub08paramA','sub08paramB'...
-'sub09default','sub09paramA','sub09paramB'};
 Tablezstatmedians2 = [Headers; num2cell(Tablezstatmedians)]
 Tablezstatmedians3 = cell2table(Tablezstatmedians2)
 Tablezstatmedians4 = Tablezstatmedians2(2:end,:);
@@ -228,13 +225,6 @@ zstatmedians_final_table = Table_zstatmedians5
 
 %zstatmediansNOZ
 TablezstatmediansNOZ = cell2mat(zstatmediansNOZ_final)
-Headers = {'sub01default','sub01paramA','sub01paramB',...
-'sub02default','sub02paramA','sub02paramB',...
-'sub03default','sub03paramA','sub03paramB',...
-'sub05default','sub05paramA','sub05paramB',...
-'sub07default','sub07paramA','sub07paramB',...
-'sub08default','sub08paramA','sub08paramB'...
-'sub09default','sub09paramA','sub09paramB'};
 TablezstatmediansNOZ2 = [Headers; num2cell(TablezstatmediansNOZ)]
 TablezstatmediansNOZ3 = cell2table(TablezstatmediansNOZ2)
 TablezstatmediansNOZ4 = TablezstatmediansNOZ2(2:end,:);
@@ -268,7 +258,8 @@ plot((-60:4:60),mean(Tablezstatmedians(:,2:3:end),2),'g')
 plot((-60:4:60),mean(Tablezstatmedians(:,3:3:end),2),'b')
 title('Zstat Means of Medians');
 grid
-legend('Default','paramA','paramB')
+legend('Default','paramA','paramB') %default = red, paramA = green, paramB = blue
+%this is not RGB friendly so might change the colours later. 
 hold off
 
 % Plots mean of the default, paramA & paramB means %
