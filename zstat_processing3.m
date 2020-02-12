@@ -1,5 +1,15 @@
 %% README asl_analysis
- 
+%What does this script do?
+%set up FSL environment
+%Read in zstatmap percentage data
+%reads in GM cortex mask
+%creates output folders
+%loops through subjects {1,2,3,5,7,8,9,10,11,12,13,14}
+%removes 0's
+%outputs mean, medians both w. & w.o 0's
+%Creates tables with this data in format sub1 default, sub1 paramA, sub1
+%Paramb, sub2 default etc
+%creates graphs for all subjs, also with mean of mean and medians 
 %% Line to make it into a function
 % function T=asl_analysis(src,subj)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,10 +50,10 @@ DataOutput = sprintf('%s/derivatives/DataOutput',src) %Assign variable DataOutpu
 DataOutputPerSubj = sprintf('%s/derivatives/DataOutput/PerSubj',src) %Assign variable DataOutput to the folder
 
 %Check if folder exists
-    if ~exist(sprintf('%s/FiguresOut',src), 'dir')
-       mkdir(sprintf('%s/FiguresOut',src))
+    if ~exist(sprintf('%s/derivatives/FiguresOut',src), 'dir')
+       mkdir(sprintf('%s/derivatives/FiguresOut',src))
     end
-FiguresOut = sprintf('%s/FiguresOut',src) 
+FiguresOut = sprintf('%s/derivatives/FiguresOut',src) 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% For Loop to create files of mean, median Zstats, both with & without 0's %%
@@ -167,8 +177,7 @@ dlmwrite(sprintf('%s/zstatmeansNOZ_final_all_%s.tsv', DataOutput, datestr(clock,
 %% Set up table inputs %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 %rows - skip numbers -60 secs to +60 secs in intervals of 4secs
-%row={-60:4:60}';
-%row=(-60:4:60)';
+%row={-60:4:60}'; %row=(-60:4:60)';
 % Headers %
 %Each parameter is entered mannually cos it does not like the loop
 %Headers = {'SubjectNo_MRIParam','sub01default','sub01paramA','sub01paramB',...
@@ -257,15 +266,33 @@ zstatmediansNOZ_final_table = Table_zstatmediansNOZ5
 figure;
 plot(Tablezstatmeans);
 title('Tablezstatmeans')
+saveas(gcf,fullfile(FiguresOut,['zstatmeans_all_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
 figure;
 plot(Tablezstatmedians);
 title('Tablezstatmedians')
+saveas(gcf,fullfile(FiguresOut,['zstatmedians_all_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
 figure;
 plot(TablezstatmeansNOZ);
 title('TablezstatmeansNOZ')
+saveas(gcf,fullfile(FiguresOut,['zstatmeansNOZ_all_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
 figure;
 plot(TablezstatmediansNOZ);
 title('TablezstatmediansNOZ')
+saveas(gcf,fullfile(FiguresOut,['zstatmediansNOZ_all_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
+
+
+% Plots mean of the default, paramA & paramB means %
+figure
+plot((-60:4:60),mean(Tablezstatmeans(:,1:3:end),2),'r')
+hold on
+plot((-60:4:60),mean(Tablezstatmeans(:,2:3:end),2),'g')
+plot((-60:4:60),mean(Tablezstatmeans(:,3:3:end),2),'b')
+title('Zstat Means of Means');
+grid
+legend('Default','paramA','paramB')
+hold off
+saveas(gcf,fullfile(FiguresOut,['zstatmeans_means_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
+
 
 % Plots mean of the default, paramA & paramB medians %
 figure
@@ -278,22 +305,38 @@ grid
 legend('Default','paramA','paramB') %default = red, paramA = green, paramB = blue
 %this is not RGB friendly so might change the colours later. 
 hold off
-saveas(gcf,fullfile(srcout,['T' num2str(subj) 'table_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg']));
+saveas(gcf,fullfile(FiguresOut,['zstatmedians_means_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
 
-% Plots mean of the default, paramA & paramB means %
+% Plots mean of the default, paramA & paramB means NOZ %
 figure
-plot((-60:4:60),mean(Tablezstatmeans(:,1:3:end),2),'r')
+plot((-60:4:60),mean(TablezstatmeansNOZ(:,1:3:end),2),'r')
 hold on
-plot((-60:4:60),mean(Tablezstatmeans(:,2:3:end),2),'g')
-plot((-60:4:60),mean(Tablezstatmeans(:,3:3:end),2),'b')
-title('Zstat Means of Means');
+plot((-60:4:60),mean(TablezstatmeansNOZ(:,2:3:end),2),'g')
+plot((-60:4:60),mean(TablezstatmeansNOZ(:,3:3:end),2),'b')
+title('Zstat Means of Means NOZ');
 grid
 legend('Default','paramA','paramB')
 hold off
-saveas(gcf,fullfile(srcout,['T' num2str(subj) 'table_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg']));
+saveas(gcf,fullfile(FiguresOut,['zstatmeans_meansNOZ_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
+
+% Plots mean of the default, paramA & paramB medians NOZ %
+figure
+plot((-60:4:60),mean(TablezstatmediansNOZ(:,1:3:end),2),'r')
+hold on %plots the following two onto the same graph
+plot((-60:4:60),mean(TablezstatmediansNOZ(:,2:3:end),2),'g')
+plot((-60:4:60),mean(TablezstatmediansNOZ(:,3:3:end),2),'b')
+title('Zstat Means of Medians NOZ');
+grid
+legend('Default','paramA','paramB') %default = red, paramA = green, paramB = blue
+%this is not RGB friendly so might change the colours later. 
+hold off
+saveas(gcf,fullfile(FiguresOut,['zstatmediansNOZ_means_' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
+
+
 %% BoxPlot %%
 
-%Medians
+
+%Medians - all subjects
 tmp_Tablezstatmedians{1} = Tablezstatmedians(:,1:3:end); 
 tmp_Tablezstatmedians{2} = Tablezstatmedians(:,2:3:end); 
 tmp_Tablezstatmedians{3} = Tablezstatmedians(:,3:3:end); 
@@ -303,9 +346,23 @@ x = cellfun(@(x, y) [x(:) y*ones(size(x(:)))], tmp_Tablezstatmedians, y, 'Unifor
 X = vertcat(x{:}); 
 figure;
 boxplot(X(:,1), X(:,2), 'Labels',{'Default','paramA', 'paramB'})
-title('zstatmedians')
+title('zstatmedians all subjects')
+saveas(gcf,fullfile(FiguresOut,['zstatmedians_boxplot_allsubjs' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
 
-%%
+%MediansNOZ - all subjects
+tmp_TablezstatmediansNOZ{1} = TablezstatmediansNOZ(:,1:3:end); 
+tmp_TablezstatmediansNOZ{2} = TablezstatmediansNOZ(:,2:3:end); 
+tmp_TablezstatmediansNOZ{3} = TablezstatmediansNOZ(:,3:3:end); 
+
+y = num2cell(1:numel(tmp_TablezstatmediansNOZ)); 
+x = cellfun(@(x, y) [x(:) y*ones(size(x(:)))], tmp_TablezstatmediansNOZ, y, 'UniformOutput', 0); % adding labels to the cells 
+X = vertcat(x{:}); 
+figure;
+boxplot(X(:,1), X(:,2), 'Labels',{'Default','paramA', 'paramB'})
+title('zstatmediansNOZ all subjects')
+saveas(gcf,fullfile(FiguresOut,['zstatmediansNOZ_boxplot_allsubjs' datestr(clock,'yyyy-mm-dd_HH-MM-SS') '.jpg'])); %save
+
+%% sandpit
 % Data1=tmp_Tablezstatmedians{1}
 % Data2=tmp_Tablezstatmedians{2}
 % Data3=tmp_Tablezstatmedians{3}
@@ -338,8 +395,8 @@ boxplot(X(:,1), X(:,2), 'Labels',{'Default','paramA', 'paramB'})
 title('zstatmediansNOZ')
 
 
+%test1{1}=table(tmp_rows, tmp_TablezstatmediansNOZ{1}(1,:))
 test1{1}=table(tmp_rows, tmp_TablezstatmediansNOZ{1}(1,:))
-
 test2{1}=tmp_TablezstatmediansNOZ{1}(1,:)
 y = num2cell(1:numel(tmp_TablezstatmediansNOZ)); 
 x = cellfun(@(x, y) [x(:) y*ones(size(x(:)))], tmp_TablezstatmediansNOZ, y, 'UniformOutput', 0); % adding labels to the cells 
