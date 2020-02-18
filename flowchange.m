@@ -372,7 +372,9 @@ Headers2={'sub01',...
 T=table_co2_changes
 co2_changes_final= array2table(table_co2_changes,'RowNames',mriparameters,'VariableNames',Headers2)
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PART 3 - calculate flow change %% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% calculate flow change
 
 % for refence
@@ -382,8 +384,119 @@ co2_changes_final= array2table(table_co2_changes,'RowNames',mriparameters,'Varia
 % tmp_TablecvrmediansNOZ_12{3} = TablecvrmediansNOZ(19,3:3:end);  %paramB
 dlmwrite(sprintf('%s/tmp_TablecvrmediansNOZ_12%s.tsv', DataOutput,datestr(clock,'yyyy-mm-dd_HH-MM-SS')),tmp_TablecvrmediansNOZ_12,'\t')
 
+%re-format tmp_TablecvrmediansNOZ_12
+
+cells_cvrmediansNOZ_12={tmp_TablecvrmediansNOZ_12{1};tmp_TablecvrmediansNOZ_12{2};tmp_TablecvrmediansNOZ_12{3}} %format transverse, col = subjno, row = mriparam
+array_cvrmediansNOZ_12=cell2mat(cells_cvrmediansNOZ_12) %format to array col = subjno, row = mriparam
+
+Table_cvrmediansNOZ_12= array2table(array_cvrmediansNOZ_12,'RowNames',mriparameters,'VariableNames',Headers2)
 
 
+%flow change = cvr divided by average co2
+array_flowchange = array_cvrmediansNOZ_12./avgco2
+dlmwrite(sprintf('%s/array_flowchange_%s.tsv', DataOutput,datestr(clock,'yyyy-mm-dd_HH-MM-SS')),array_flowchange,'\t')
+Table_flowchange= array2table(array_flowchange,'RowNames',mriparameters,'VariableNames',Headers2)
+
+%%
+
+flow_change_transpose=(array_flowchange)'
+figure;
+H=boxplot(flow_change_transpose,'Labels',{'Default','paramA', 'paramB'})
+title('Flow Change')
+xlabel('MRI Parameter')
+ylabel(' Flow Change? (%)')
+hold on
+%plot data points
+xCenter = 1:numel(flow_change_transpose); 
+spread = 0.5; % 0=no spread; 0.5=random spread within box bounds (can be any value)
+
+for i = 1:numel(flow_change_transpose)
+    plot(rand(size(flow_change_transpose(:,1)))*spread -(spread/2) + xCenter(i), flow_change_transpose, 'yo','linewidth', 1)
+end
+
+for i = 1:numel(flow_change_transpose)
+    plot(rand(size(flow_change_transpose(:,2)))*spread -(spread/2) + xCenter(i), flow_change_transpose, 'go','linewidth', 1)
+end
+
+for i = 1:numel(flow_change_transpose)
+    plot(rand(size(flow_change_transpose(:,3)))*spread -(spread/2) + xCenter(i), flow_change_transpose, 'bo','linewidth', 1)
+end
+%set line width
+set(findobj(gca,'type','line'),'linew',3)
+set(gca,'linew',2)
+%set colours of boxes;
+get(H,'tag')
+set(H(6,:),'color','k','linewidth',3.0)
+colorchoice=['y','g','b'];
+h=findobj(gca,'Tag','Box')'
+for i = 1:length(h)
+        patch(get(h(i),'XData'),get(h(i),'YData'),colorchoice(i),'FaceAlpha',0.5);
+end
+%legend('Default','paramA','paramB')
+
+%%
+figure;
+Data1=flow_change_transpose(:,1)
+Data2=flow_change_transpose(:,2)
+Data3=flow_change_transpose(:,3)
+allData = {Data1; Data2; Data3}; 
+
+
+group = [    ones(size(Data1));
+         2 * ones(size(Data2))
+         3 * ones(size(Data3))];
+boxplot([Data1; Data2; Data3],group)
+
+h = boxplot(cell2mat(allData),group); % old version: h = boxplot([allData{:}],group);
+set(h, 'linewidth' ,2)
+set(gca,'XTickLabel', {'Default';'paramA'; 'paramB'})
+hold on
+xCenter = 1:numel(allData); 
+spread = 0; % 0=no spread; 0.5=random spread within box bounds (can be any value)
+for i = 1:numel(allData)
+    plot(rand(size(allData{i}))*spread -(spread/2) + xCenter(i), allData{i}, 'mo','linewidth', 2)
+end
+
+get(H,'tag')
+set(H(6,:),'color','k','linewidth',3.0)
+colorchoice=['y','g','b'];
+h=findobj(gca,'Tag','Box')'
+for i = 1:length(h)
+        patch(get(h(i),'XData'),get(h(i),'YData'),colorchoice(i),'FaceAlpha',0.5);
+end
+%% WIP  from here %%%
+
+plot(flow_change_transpose)
+f1=scatter(x(:,1),flow_change_transpose(:,1),'k','filled');f1.MarkerFaceAlpha = 0.4;hold on  
+
+f2=scatter(x1(:,2).*2,flow_change_transpose(:,2),'k','filled');f2.MarkerFaceAlpha = f1.MarkerFaceAlpha;hold on 
+
+f3=scatter(x2(:,3).*3,flow_change_transpose(:,3),'k','filled');f3.MarkerFaceAlpha = f1.MarkerFaceAlpha;hold on 
+
+%% Boxplot?
+%inputdata
+
+mriparams = {'default', 'paramA','paramB'};
+mriparams= (mriparams)'
+
+t = table(mriparams,flow_change_transpose(:,1),flow_change_transpose(:,2),flow_change_transpose(:,3),...
+'VariableNames',{'meas1','meas2','meas3',});
+Meas = dataset([1; 2; 3]','VarNames',{'Measurements'});
+%Fit a repeated measures model, where the measurements are the responses and the species is the predictor variable.
+
+rm = fitrm(t,'meas1-meas3~mriparams','WithinDesign',Meas);
+%Plot data grouped by the factor species.
+
+plot(rm,'group','mriparams')
+
+
+%%
+
+t = table(Headers2,array_flowchange(1,:),array_flowchange(2,:),array_flowchange(3,:),...
+'VariableNames',{'Headers2','meas1','meas2','meas3'});
+Meas = dataset([1 2 3]','VarNames',{'Measurements'});
+rm = fitrm(t,'meas1-meas3~Headers2','WithinDesign',array_flowchange);
+plot(rm,'group','Headers2')
 
 %% End of Script %%
 fprintf('~~~ End of Script ~~~'); %prints to command window '~~~ End of Script ~~~'
