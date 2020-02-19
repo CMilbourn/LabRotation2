@@ -37,7 +37,7 @@ setenv('FSLOUTPUTTYPE', 'NIFTI_GZ'); % Set up output type
 %% Set up paths
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%subjects to run %%
-subjlist = {1,2,3,5,7,8,9,10,13,14}; %Creates a list with the subject numbers to run through called 'numlist'
+subjlist = {1,2,3,5,6,7,8,9,10,11,12,13,14}; %Creates a list with the subject numbers to run through called 'numlist'
 % Source In - Path to datafolder
 src = '/Users/colette/sourcedata/'
 %Source Out - Path to previously processed data
@@ -155,10 +155,13 @@ Headers = {'sub01default','sub01paramA','sub01paramB',...
 'sub02default','sub02paramA','sub02paramB',...
 'sub03default','sub03paramA','sub03paramB',...
 'sub05default','sub05paramA','sub05paramB',...
+'sub06default','sub06paramA','sub06paramB',...
 'sub07default','sub07paramA','sub07paramB',...
 'sub08default','sub08paramA','sub08paramB'...
 'sub09default','sub09paramA','sub09paramB'...
 'sub10default','sub10paramA','sub10paramB'...
+'sub11default','sub11paramA','sub11paramB'...
+'sub12default','sub12paramA','sub12paramB'...
 'sub13default','sub13paramA','sub13paramB'...
 'sub14default','sub14paramA','sub14paramB'...
 };
@@ -362,10 +365,13 @@ Headers2={'sub01',...
 'sub02',...
 'sub03',...
 'sub05',...
+'sub06',...
 'sub07',...
 'sub08'...
 'sub09'...
 'sub10'...
+'sub11'...
+'sub12'...
 'sub13'...
 'sub14'...
 };
@@ -397,44 +403,11 @@ array_flowchange = array_cvrmediansNOZ_12./avgco2
 dlmwrite(sprintf('%s/array_flowchange_%s.tsv', DataOutput,datestr(clock,'yyyy-mm-dd_HH-MM-SS')),array_flowchange,'\t')
 Table_flowchange= array2table(array_flowchange,'RowNames',mriparameters,'VariableNames',Headers2)
 
-%%
 
-flow_change_transpose=(array_flowchange)'
-figure;
-H=boxplot(flow_change_transpose,'Labels',{'Default','paramA', 'paramB'})
-title('Flow Change')
-xlabel('MRI Parameter')
-ylabel(' Flow Change? (%)')
-hold on
-%plot data points
-xCenter = 1:numel(flow_change_transpose); 
-spread = 0.5; % 0=no spread; 0.5=random spread within box bounds (can be any value)
-
-for i = 1:numel(flow_change_transpose)
-    plot(rand(size(flow_change_transpose(:,1)))*spread -(spread/2) + xCenter(i), flow_change_transpose, 'yo','linewidth', 1)
-end
-
-for i = 1:numel(flow_change_transpose)
-    plot(rand(size(flow_change_transpose(:,2)))*spread -(spread/2) + xCenter(i), flow_change_transpose, 'go','linewidth', 1)
-end
-
-for i = 1:numel(flow_change_transpose)
-    plot(rand(size(flow_change_transpose(:,3)))*spread -(spread/2) + xCenter(i), flow_change_transpose, 'bo','linewidth', 1)
-end
-%set line width
-set(findobj(gca,'type','line'),'linew',3)
-set(gca,'linew',2)
-%set colours of boxes;
-get(H,'tag')
-set(H(6,:),'color','k','linewidth',3.0)
-colorchoice=['y','g','b'];
-h=findobj(gca,'Tag','Box')'
-for i = 1:length(h)
-        patch(get(h(i),'XData'),get(h(i),'YData'),colorchoice(i),'FaceAlpha',0.5);
-end
-%legend('Default','paramA','paramB')
-
-%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Boxplots %% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+flow_change_transpose=(array_flowchange)';
 figure;
 Data1=flow_change_transpose(:,1)
 Data2=flow_change_transpose(:,2)
@@ -464,39 +437,219 @@ h=findobj(gca,'Tag','Box')'
 for i = 1:length(h)
         patch(get(h(i),'XData'),get(h(i),'YData'),colorchoice(i),'FaceAlpha',0.5);
 end
+
+
+%% BOXPLOT - Young participants only
+
+flow_change_transpose=(array_flowchange)';
+figure;
+Data1=flow_change_transpose(1:9,1)
+Data2=flow_change_transpose(1:9,2)
+Data3=flow_change_transpose(1:9,3)
+allDatayoung = {Data1; Data2; Data3}; 
+
+
+group = [    ones(size(Data1));
+         2 * ones(size(Data2))
+         3 * ones(size(Data3))];
+boxplot([Data1; Data2; Data3],group)
+
+h = boxplot(cell2mat(allDatayoung),group); % old version: h = boxplot([allDatayoung{:}],group);
+set(h, 'linewidth' ,2)
+set(gca,'XTickLabel', {'Default';'paramA'; 'paramB'})
+hold on
+xCenter = 1:numel(allDatayoung); 
+spread = 0; % 0=no spread; 0.5=random spread within box bounds (can be any value)
+for i = 1:numel(allDatayoung)
+    plot(rand(size(allDatayoung{i}))*spread -(spread/2) + xCenter(i), allDatayoung{i}, 'mo','linewidth', 2)
+end
+title('Young participants only')
+get(H,'tag')
+ylim([0 10])
+set(H(6,:),'color','k','linewidth',3.0)
+colorchoice=['y','g','b'];
+h=findobj(gca,'Tag','Box')'
+for i = 1:length(h)
+        patch(get(h(i),'XData'),get(h(i),'YData'),colorchoice(i),'FaceAlpha',0.5);
+end
+
+
+
+%% BOXPLOT - old participants only
+
+flow_change_transpose=(array_flowchange)';
+figure;
+Data4=flow_change_transpose(10:end,1)
+Data5=flow_change_transpose(10:end,2)
+Data6=flow_change_transpose(10:end,3)
+allDataold = {Data4; Data5; Data6}; 
+
+
+group = [    ones(size(Data4));
+         2 * ones(size(Data5))
+         3 * ones(size(Data6))];
+boxplot([Data4; Data5; Data6],group)
+
+h = boxplot(cell2mat(allDataold),group); % old version: h = boxplot([allDataold{:}],group);
+set(h, 'linewidth' ,2)
+set(gca,'XTickLabel', {'Default';'paramA'; 'paramB'})
+hold on
+xCenter = 1:numel(allDataold); 
+spread = 0; % 0=no spread; 0.5=random spread within box bounds (can be any value)
+for i = 1:numel(allDataold)
+    plot(rand(size(allDataold{i}))*spread -(spread/2) + xCenter(i), allDataold{i}, 'mo','linewidth', 2)
+end
+title('Old participants only')
+get(H,'tag')
+ylim([0 10])
+set(H(6,:),'color','k','linewidth',3.0)
+colorchoice=['y','g','b'];
+h=findobj(gca,'Tag','Box')'
+for i = 1:length(h)
+        patch(get(h(i),'XData'),get(h(i),'YData'),colorchoice(i),'FaceAlpha',0.5);
+end
+
+
+%% Boxplot young vs. old
+figure;
+
+allDatanew = {Data1;Data2; Data3; Data4; Data5; Data6}; 
+
+
+% group = [   ones(size(Data1));
+%          2 * ones(size(Data2))
+%          3 * ones(size(Data3))
+%          4 * ones(size(Data4));
+%          5 * ones(size(Data5))
+%          6 * ones(size(Data6))];
+
+group = [   ones(size(Data1))
+         2 * ones(size(Data4))
+         3 * ones(size(Data2))
+         4 * ones(size(Data5))
+         5 * ones(size(Data3))
+         6 * ones(size(Data6))];
+boxplot([Data1; Data4; Data2; Data5; Data3; Data6],group)
+
+h = boxplot(cell2mat(allDatanew),group); % old version: h = boxplot([allDatanew{:}],group);
+set(h, 'linewidth' ,2)
+set(gca,'XTickLabel', {'Defaultyoung';'Defaultold';'paramAyoung'; 'paramAold'; 'paramByoung'; 'paramBold'})
+hold on
+xCenter = 1:numel(allDatanew); 
+spread = 0; % 0=no spread; 0.5=random spread within box bounds (can be any value)
+for i = 1:numel(allDatanew)
+    plot(rand(size(allDatanew{i}))*spread -(spread/2) + xCenter(i), allDatanew{i}, 'mo','linewidth', 2)
+end
+title('Compare participants young v.s old')
+get(H,'tag')
+ylim([0 10])
+set(H(6,:),'color','k','linewidth',3.0)
+colorchoice=['y','g','b'];
+h=findobj(gca,'Tag','Box')'
+for i = 1:length(h)
+        patch(get(h(i),'XData'),get(h(i),'YData'),colorchoice(i),'FaceAlpha',0.5);
+end
+
 %% WIP  from here %%%
+% flow_change_transpose=(array_flowchange)'
+% figure;
+% H=boxplot(flow_change_transpose,'Labels',{'Default','paramA', 'paramB'})
+% title('Flow Change')
+% xlabel('MRI Parameter')
+% ylabel(' Flow Change? (%)')
+% hold on
+% %plot data points
+% xCenter = 1:numel(flow_change_transpose); 
+% spread = 0.5; % 0=no spread; 0.5=random spread within box bounds (can be any value)
+% 
+% for i = 1:numel(flow_change_transpose)
+%     plot(rand(size(flow_change_transpose(:,1)))*spread -(spread/2) + xCenter(i), flow_change_transpose, 'yo','linewidth', 1)
+% end
+% 
+% for i = 1:numel(flow_change_transpose)
+%     plot(rand(size(flow_change_transpose(:,2)))*spread -(spread/2) + xCenter(i), flow_change_transpose, 'go','linewidth', 1)
+% end
+% 
+% for i = 1:numel(flow_change_transpose)
+%     plot(rand(size(flow_change_transpose(:,3)))*spread -(spread/2) + xCenter(i), flow_change_transpose, 'bo','linewidth', 1)
+% end
+% %set line width
+% set(findobj(gca,'type','line'),'linew',3)
+% set(gca,'linew',2)
+% %set colours of boxes;
+% get(H,'tag')
+% set(H(6,:),'color','k','linewidth',3.0)
+% colorchoice=['y','g','b'];
+% h=findobj(gca,'Tag','Box')'
+% for i = 1:length(h)
+%         patch(get(h(i),'XData'),get(h(i),'YData'),colorchoice(i),'FaceAlpha',0.5);
+% end
+% %legend('Default','paramA','paramB')
+% 
+% %% 
+% 
+% 
+% plot(flow_change_transpose)
+% f1=scatter(x(:,1),flow_change_transpose(:,1),'k','filled');f1.MarkerFaceAlpha = 0.4;hold on  
+% 
+% f2=scatter(x1(:,2).*2,flow_change_transpose(:,2),'k','filled');f2.MarkerFaceAlpha = f1.MarkerFaceAlpha;hold on 
+% 
+% f3=scatter(x2(:,3).*3,flow_change_transpose(:,3),'k','filled');f3.MarkerFaceAlpha = f1.MarkerFaceAlpha;hold on 
+% 
+% %% Boxplot?
+% %inputdata
+% 
+% mriparams = {'default', 'paramA','paramB'};
+% mriparams= (mriparams)'
+% 
+% t = table(mriparams,flow_change_transpose(:,1),flow_change_transpose(:,2),flow_change_transpose(:,3),...
+% 'VariableNames',{'meas1','meas2','meas3',});
+% Meas = dataset([1; 2; 3]','VarNames',{'Measurements'});
+% %Fit a repeated measures model, where the measurements are the responses and the species is the predictor variable.
+% 
+% rm = fitrm(t,'meas1-meas3~mriparams','WithinDesign',Meas);
+% %Plot data grouped by the factor species.
+% 
+% plot(rm,'group','mriparams')
+% 
+% %%
+% 
+% 
+% 
+% mriparams = {'default', 'paramA','paramB'};
+% mriparams= (mriparams)'
+% 
+% t = table(mriparams,array_flowchange(1,:),array_flowchange(2,:),array_flowchange(3,:),...
+% 'VariableNames',{'meas1','meas2','meas3',});
+% Meas = dataset([1 2 3]','VarNames',{'Measurements'});
+% %Fit a repeated measures model, where the measurements are the responses and the species is the predictor variable.
+% 
+% rm = fitrm(t,'meas1-meas3~mriparams','WithinDesign',Meas);
+% %Plot data grouped by the factor species.
+% 
+% plot(rm,'group','mriparams')
+% 
+% %%
+% 
+% t = table(Headers2,array_flowchange(1,:),array_flowchange(2,:),array_flowchange(3,:),...
+% 'VariableNames',{'Headers2','meas1','meas2','meas3'});
+% Meas = dataset([1 2 3]','VarNames',{'Measurements'});
+% rm = fitrm(t,'meas1-meas3~Headers2','WithinDesign',array_flowchange);
+% plot(rm,'group','Headers2')
 
-plot(flow_change_transpose)
-f1=scatter(x(:,1),flow_change_transpose(:,1),'k','filled');f1.MarkerFaceAlpha = 0.4;hold on  
 
-f2=scatter(x1(:,2).*2,flow_change_transpose(:,2),'k','filled');f2.MarkerFaceAlpha = f1.MarkerFaceAlpha;hold on 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Statistics: Two-way ANOVA %% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%ANOVA 1 on array_flowchange transposed
+[p tbl sts]=anova1(array_flowchange') 
 
-f3=scatter(x2(:,3).*3,flow_change_transpose(:,3),'k','filled');f3.MarkerFaceAlpha = f1.MarkerFaceAlpha;hold on 
+%Multi compare on stats from above
+multcompare(sts)
 
-%% Boxplot?
-%inputdata
+%Young only
 
-mriparams = {'default', 'paramA','paramB'};
-mriparams= (mriparams)'
-
-t = table(mriparams,flow_change_transpose(:,1),flow_change_transpose(:,2),flow_change_transpose(:,3),...
-'VariableNames',{'meas1','meas2','meas3',});
-Meas = dataset([1; 2; 3]','VarNames',{'Measurements'});
-%Fit a repeated measures model, where the measurements are the responses and the species is the predictor variable.
-
-rm = fitrm(t,'meas1-meas3~mriparams','WithinDesign',Meas);
-%Plot data grouped by the factor species.
-
-plot(rm,'group','mriparams')
-
-
-%%
-
-t = table(Headers2,array_flowchange(1,:),array_flowchange(2,:),array_flowchange(3,:),...
-'VariableNames',{'Headers2','meas1','meas2','meas3'});
-Meas = dataset([1 2 3]','VarNames',{'Measurements'});
-rm = fitrm(t,'meas1-meas3~Headers2','WithinDesign',array_flowchange);
-plot(rm,'group','Headers2')
-
+[p tbl sts]=anova1(array_flowchange(:,1:8)')
+multcompare(sts)
 %% End of Script %%
 fprintf('~~~ End of Script ~~~'); %prints to command window '~~~ End of Script ~~~'
